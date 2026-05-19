@@ -15,7 +15,14 @@ const orderSchema = new mongoose.Schema(
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
-      required: true,
+      required: false,
+    },
+
+    // 📝 Exam being purchased
+    exam: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ExamProduct",
+      required: false,
     },
 
     // 💰 Pricing snapshot (important for history)

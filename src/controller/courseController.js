@@ -33,7 +33,15 @@ const uploadToCloudinary = (fileBuffer) => {
     });
 };
 
+const slugify = (text) =>
+    text
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]+/g, "");
+
 exports.createCourse = async (req, res) => {
+    // console.log("Received course creation request with data:", req.body);
     try {
         let thumbnailUrl = "";
         let thumbnailPublicId = "";
@@ -44,9 +52,16 @@ exports.createCourse = async (req, res) => {
             thumbnailUrl = result.secure_url;
             thumbnailPublicId = result.public_id;
         }
-
+        // 🔥 FIX HERE
+        const faq = req.body.faq ? JSON.parse(req.body.faq) : [];
+        const syllabus = req.body.syllabus ? JSON.parse(req.body.syllabus) : [];
+        const features = req.body.features ? JSON.parse(req.body.features) : [];
         const course = await Course.create({
             ...req.body,
+            faq,
+            syllabus,
+            features,
+            slug: req.body.slug || slugify(req.body.title),
             thumbnail: thumbnailUrl, // save cloudinary URL
             thumbnailPublicId // save public ID for future deletion
         });
@@ -90,8 +105,8 @@ exports.getAllCourses = async (req, res) => {
 // get course details -- public (by slug)\
 exports.getCourseDetails = async (req, res) => {
     try {
-        const { slug } = req.params;
-        const course = await Course.findOne({ slug, status: "published" }).populate("syllabus");
+        const { id } = req.params.id;
+        const course = await Course.findOne({ id, status: "published" }).populate("syllabus");
 
         if (!course) {
             return res.status(404).json({ message: "Course not found" });

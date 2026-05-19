@@ -2,6 +2,9 @@
 
 const axios = require("axios");
 const Order = require("../../model/OrderModel");
+const User = require("../../model/UserModel");
+const Course = require("../../model/CourseMode");
+const ExamProduct = require("../../model/ExamProduct");
 
 exports.bkashCallback = async (req, res) => {
   try {
@@ -34,11 +37,31 @@ exports.bkashCallback = async (req, res) => {
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
-    order.paymentStatus = "paid";
-    order.transactionId = data.trxID;
-    order.status = "completed";
+    if (order.paymentStatus !== "paid") {
+      order.paymentStatus = "paid";
+      order.transactionId = data.trxID;
+      order.status = "completed";
+      await order.save();
 
-    await order.save();
+      // Update user enrollments and product stats
+      const user = await User.findById(order.user);
+      if (order.course) {
+        if (user && !user.enrolledCourses.includes(order.course)) {
+          user.enrolledCourses.push(order.course);
+        }
+        await Course.findByIdAndUpdate(order.course, {
+          $inc: { totalEnrollments: 1, totalRevenue: order.finalAmount }
+        });
+      } else if (order.exam) {
+        if (user && !user.enrolledExams.includes(order.exam)) {
+          user.enrolledExams.push(order.exam);
+        }
+        await ExamProduct.findByIdAndUpdate(order.exam, {
+          $inc: { totalEnrollments: 1, totalRevenue: order.finalAmount }
+        });
+      }
+      if (user) await user.save();
+    }
 
     // 🎉 redirect to success page
     res.redirect(

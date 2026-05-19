@@ -44,6 +44,13 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
+    enrolledExams: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ExamProduct",
+      },
+    ],
+
     createdAt: {
       type: Date,
       default: Date.now,

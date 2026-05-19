@@ -43,7 +43,7 @@ const courseSchema = new mongoose.Schema(
 
     subject: {
       type: String,
-      enum: ["Physics", "Chemistry", "Math", "ICT"],
+
       required: true,
     },
 
@@ -58,8 +58,7 @@ const courseSchema = new mongoose.Schema(
 
     syllabus: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Syllabus",
+        title: String,
       },
     ],
 
@@ -71,20 +70,15 @@ const courseSchema = new mongoose.Schema(
       default: "draft",
     },
 
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+    // createdBy: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "User",
+    // },
   },
   { timestamps: true }
 );
 
-// auto slug
-courseSchema.pre("save", function (next) {
-  if (!this.slug) {
-    this.slug = this.title.toLowerCase().replace(/ /g, "-");
-  }
-  next();
-});
+
+
 
 module.exports = mongoose.model("Course", courseSchema);
